@@ -19,7 +19,7 @@ const initialState = {
         
       },
       completeTask: (state,action) => {
-        console.log(action.payload);
+        // console.log(action.payload);
         state.historyTask.push(action.payload);
        
         state.allTasks=state.allTasks.filter((t)=> t.id != action.payload.id);
@@ -31,6 +31,11 @@ const initialState = {
         // console.log(edittaskindex);
          state.allTasks[edittaskindex].task=action.payload.value;
       },
+      restoreTask: (state,action) => {
+        state.allTasks.push(action.payload);
+        state.historyTask=state.historyTask.filter((t)=> t.id != action.payload.id);
+        
+      },
       decrement: (state) => {
         state.value -= 1
       },
@@ -39,6 +44,6 @@ const initialState = {
       },
     },
   });
-  export const { increment, decrement, incrementByAmount,completeTask,editTask } = taskSlice.actions
+  export const { increment, decrement, incrementByAmount,completeTask,editTask ,restoreTask} = taskSlice.actions
 
 export default taskSlice.reducer

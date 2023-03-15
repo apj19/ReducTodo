@@ -5,7 +5,12 @@ import { Tooltip, Button } from "@material-tailwind/react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { nanoid } from "@reduxjs/toolkit";
-import { increment, completeTask, editTask } from "../features/taskSlice";
+import {
+  increment,
+  completeTask,
+  editTask,
+  restoreTask,
+} from "../features/taskSlice";
 import { useSelector, useDispatch } from "react-redux";
 import { useForm } from "react-hook-form";
 import "animate.css";
@@ -15,6 +20,7 @@ function Todo() {
   function classNames(...classes) {
     return classes.filter(Boolean).join(" ");
   }
+  const [selectedIndex, setSelectedIndex] = useState(0);
   const taskList = useSelector((state) => state.task.allTasks);
   const historyList = useSelector((state) => state.task.historyTask);
   const [showHistory, setShowHistory] = useState(false);
@@ -47,6 +53,8 @@ function Todo() {
               // console.log(data);
               reset();
               notify();
+              setShowHistory(false);
+              setSelectedIndex(0);
 
               dispatch(increment({ id: nanoid(), task: data.Task }));
             })}
@@ -131,19 +139,62 @@ function Todo() {
           historyList.map((m) => (
             <div
               key={m.id}
-              className="flex justify-between items-center mx-4  animate__animated animate__fadeIn ease-in-out cursor-pointer"
+              className="flex justify-between items-center mx-4  animate__animated animate__fadeIn ease-in-out cursor-pointer py-2"
             >
               <p className="px-4 py-2 rounded text-[1rem]  ">{m.value}</p>
 
               <div className="flex gap-8 mr-4">
                 <Tooltip content="Restore">
-                  <i className="fa-solid fa-rotate-right text-blue-500"></i>
+                  <i
+                    onClick={() =>
+                      dispatch(restoreTask({ id: m.id, task: m.value }))
+                    }
+                    className="fa-solid fa-rotate-right text-blue-500"
+                  ></i>
                 </Tooltip>
               </div>
             </div>
           ))}
 
-        <div></div>
+        {taskList.length > 0 && (
+          <div
+            className="px-8 flex justify-between items-center text-[0.8rem]
+           text-[#61627c]"
+          >
+            <p>{taskList.length} Items Left</p>
+            <Tab.Group
+              selectedIndex={selectedIndex}
+              onChange={setSelectedIndex}
+            >
+              <Tab.List className="flex justify-between items-center gap-2">
+                <Tab
+                  onClick={() => setShowHistory(false)}
+                  className={({ selected }) =>
+                    classNames(
+                      "w-full rounded-lg py-2.5 text-sm font-medium leading-5 ",
+                      "",
+                      selected ? "text-blue-500" : ""
+                    )
+                  }
+                >
+                  Active
+                </Tab>
+                <Tab
+                  onClick={() => setShowHistory(true)}
+                  className={({ selected }) =>
+                    classNames(
+                      "w-full rounded-lg py-2.5 text-sm font-medium leading-5",
+                      selected ? "text-blue-500" : ""
+                    )
+                  }
+                >
+                  Completed
+                </Tab>
+              </Tab.List>
+            </Tab.Group>
+            <p>Clear Completed</p>
+          </div>
+        )}
       </div>
 
       {/* <div>
