@@ -10,6 +10,8 @@ import {
   completeTask,
   editTask,
   restoreTask,
+  CompleteAllTasks,
+  deleteAllHistoryTask,
 } from "../features/taskSlice";
 import { useSelector, useDispatch } from "react-redux";
 import { useForm } from "react-hook-form";
@@ -37,6 +39,9 @@ function Todo() {
   const notify = () => toast("Task Added!");
   const notify1 = () => toast.success("Task Completed!");
   const notifyEdit = () => toast.info("Task Edited!");
+  const notifyRestore = () => toast.info("Task Restored!");
+  const AllTaskCompleted = () => toast.success("All Task Completed!");
+  const AllTaskDeleted = () => toast.error("All Task Deleted!");
 
   const [editInput, SetEditInput] = useState({ show: false, value: "asfasd" });
 
@@ -73,7 +78,7 @@ function Todo() {
         </div>
       </div>
 
-      <div className="z-10 bg-[#25273c] text-white rounded-lg">
+      <div className="z-10 bg-[#25273c] text-[#cbcde5] rounded-lg">
         {!showHistory &&
           taskList.map((m, index) => (
             <div key={m.id} className=" py-2 ">
@@ -87,16 +92,18 @@ function Todo() {
                     defaultValue={m.task}
                     onChange={(e) => setEditTask(e.target.value)}
                   />
-                  <button
-                    onClick={() => {
-                      dispatch(editTask({ id: m.id, value: edittasks }));
-                      SetEditInput({ show: false, value: "asfasd" });
-                      notifyEdit();
-                    }}
-                    className="px-2"
-                  >
-                    Edit
-                  </button>
+                  <Tooltip content="Submit">
+                    <button
+                      onClick={() => {
+                        dispatch(editTask({ id: m.id, value: edittasks }));
+                        SetEditInput({ show: false, value: "asfasd" });
+                        notifyEdit();
+                      }}
+                      className="px-2"
+                    >
+                      <i className="fa-solid fa-check-double text-blue-500"></i>
+                    </button>
+                  </Tooltip>
                 </div>
               )}
               {editInput.value != index && (
@@ -119,7 +126,7 @@ function Todo() {
 
                     <Tooltip content="Complete">
                       <svg
-                        className="w-4 h-4 fill-blue-500 cursor-pointer "
+                        className="w-4 h-4 fill-green-500 cursor-pointer "
                         xmlns="http://www.w3.org/2000/svg"
                         viewBox="0 0 512 512"
                         onClick={() => {
@@ -141,14 +148,19 @@ function Todo() {
               key={m.id}
               className="flex justify-between items-center mx-4  animate__animated animate__fadeIn ease-in-out cursor-pointer py-2"
             >
-              <p className="px-4 py-2 rounded text-[1rem]  ">{m.value}</p>
+              <p className="px-4 py-2 rounded text-[1rem] line-through  ">
+                {m.value}
+              </p>
 
               <div className="flex gap-8 mr-4">
                 <Tooltip content="Restore">
                   <i
-                    onClick={() =>
-                      dispatch(restoreTask({ id: m.id, task: m.value }))
-                    }
+                    onClick={() => {
+                      dispatch(restoreTask({ id: m.id, task: m.value }));
+                      setShowHistory(false);
+                      notifyRestore();
+                      setSelectedIndex(0);
+                    }}
                     className="fa-solid fa-rotate-right text-blue-500"
                   ></i>
                 </Tooltip>
@@ -156,82 +168,109 @@ function Todo() {
             </div>
           ))}
 
-        {taskList.length > 0 && (
+        {(taskList.length > 0 || historyList.length > 0) && (
           <div
-            className="px-8 flex justify-between items-center text-[0.8rem]
+            className="px-8 py-2 flex flex-col md:flex-row  justify-between items-center text-[0.8rem]
            text-[#61627c]"
           >
-            <p>{taskList.length} Items Left</p>
-            <Tab.Group
-              selectedIndex={selectedIndex}
-              onChange={setSelectedIndex}
-            >
-              <Tab.List className="flex justify-between items-center gap-2">
-                <Tab
-                  onClick={() => setShowHistory(false)}
-                  className={({ selected }) =>
-                    classNames(
-                      "w-full rounded-lg py-2.5 text-sm font-medium leading-5 ",
-                      "",
-                      selected ? "text-blue-500" : ""
-                    )
-                  }
+            <div className="flex justify-between items-center w-full">
+              <p>
+                {showHistory ? historyList.length : taskList.length} Items Left
+              </p>
+              <Tab.Group
+                className="hidden md:flex"
+                selectedIndex={selectedIndex}
+                onChange={setSelectedIndex}
+              >
+                <Tab.List className=" flex justify-between items-center gap-2">
+                  <Tab
+                    onClick={() => setShowHistory(false)}
+                    className={({ selected }) =>
+                      classNames(
+                        "w-full rounded-lg py-2.5 text-sm font-medium leading-5 ",
+                        "",
+                        selected ? "text-blue-500" : ""
+                      )
+                    }
+                  >
+                    Active
+                  </Tab>
+                  <Tab
+                    onClick={() => setShowHistory(true)}
+                    className={({ selected }) =>
+                      classNames(
+                        "w-full rounded-lg py-2.5 text-sm font-medium leading-5",
+                        selected ? "text-blue-500" : ""
+                      )
+                    }
+                  >
+                    Completed
+                  </Tab>
+                </Tab.List>
+              </Tab.Group>
+              {!showHistory && (
+                <button
+                  onClick={() => {
+                    dispatch(CompleteAllTasks());
+                    setShowHistory(true);
+                    setSelectedIndex(1);
+                    AllTaskCompleted();
+                  }}
+                  className="cursor-pointer text-green-500"
                 >
-                  Active
-                </Tab>
-                <Tab
-                  onClick={() => setShowHistory(true)}
-                  className={({ selected }) =>
-                    classNames(
-                      "w-full rounded-lg py-2.5 text-sm font-medium leading-5",
-                      selected ? "text-blue-500" : ""
-                    )
-                  }
+                  Complete All
+                </button>
+              )}
+              {showHistory && (
+                <button
+                  onClick={() => {
+                    dispatch(deleteAllHistoryTask());
+                    setShowHistory(false);
+                    setSelectedIndex(0);
+                    AllTaskDeleted();
+                  }}
+                  className="cursor-pointer text-red-500"
                 >
-                  Completed
-                </Tab>
-              </Tab.List>
-            </Tab.Group>
-            <p>Clear Completed</p>
+                  Delete All
+                </button>
+              )}
+            </div>
+            <div className="md:hidden">
+              <Tab.Group
+                className=""
+                selectedIndex={selectedIndex}
+                onChange={setSelectedIndex}
+              >
+                <Tab.List className=" flex justify-between items-center gap-2">
+                  <Tab
+                    onClick={() => setShowHistory(false)}
+                    className={({ selected }) =>
+                      classNames(
+                        "w-full rounded-lg py-2.5 text-sm font-medium leading-5 ",
+                        "",
+                        selected ? "text-blue-500" : ""
+                      )
+                    }
+                  >
+                    Active
+                  </Tab>
+                  <Tab
+                    onClick={() => setShowHistory(true)}
+                    className={({ selected }) =>
+                      classNames(
+                        "w-full rounded-lg py-2.5 text-sm font-medium leading-5",
+                        selected ? "text-blue-500" : ""
+                      )
+                    }
+                  >
+                    Completed
+                  </Tab>
+                </Tab.List>
+              </Tab.Group>
+            </div>
           </div>
         )}
       </div>
-
-      {/* <div>
-        <Tab.Group>
-          <Tab.List className="flex justify-between items-center">
-            
-            <Tab
-              onClick={() => setShowHistory(false)}
-              className={({ selected }) =>
-                classNames(
-                  "w-full rounded-lg py-2.5 text-sm font-medium leading-5 text-blue-700",
-                  "ring-white ring-opacity-60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2",
-                  selected
-                    ? "bg-white shadow"
-                    : "text-blue-100 hover:bg-white/[0.12] hover:text-white"
-                )
-              }
-            >
-              Pending
-            </Tab>
-            <Tab
-              onClick={() => setShowHistory(true)}
-              className={({ selected }) =>
-                classNames(
-                  "w-full rounded-lg py-2.5 text-sm font-medium leading-5 text-blue-700",
-                  "ring-white ring-opacity-60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2",
-                  selected
-                    ? "bg-white shadow"
-                    : "text-blue-100 hover:bg-white/[0.12] hover:text-white"
-                )
-              }
-            >
-              History
-            </Tab>
-          </Tab.List>
-        </Tab.Group>
-      </div> */}
     </div>
   );
 }

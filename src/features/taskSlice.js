@@ -1,4 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
+import { nanoid } from "@reduxjs/toolkit";
 
 const initialState = {
     allTasks: [],
@@ -36,6 +37,20 @@ const initialState = {
         state.historyTask=state.historyTask.filter((t)=> t.id != action.payload.id);
         
       },
+      CompleteAllTasks: (state) => {
+        // console.log(state.allTasks);
+        // let temp=[...state.allTasks];
+        //  state.historyTask=[...state.historyTask,...state.allTasks];
+        state.allTasks.forEach(e => {
+          state.historyTask.push({id:nanoid(), value:e.task})
+        });
+        state.allTasks=[];
+        // state.historyTask=state.historyTask.filter((t)=> t.id != action.payload.id);
+        
+      },
+      deleteAllHistoryTask: (state) => {
+        state.historyTask=[];
+      },
       decrement: (state) => {
         state.value -= 1
       },
@@ -44,6 +59,6 @@ const initialState = {
       },
     },
   });
-  export const { increment, decrement, incrementByAmount,completeTask,editTask ,restoreTask} = taskSlice.actions
+  export const { increment, decrement, incrementByAmount,completeTask,editTask ,restoreTask,CompleteAllTasks,deleteAllHistoryTask} = taskSlice.actions
 
 export default taskSlice.reducer
