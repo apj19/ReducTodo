@@ -35,7 +35,7 @@ function App() {
       <h2 className="z-10 text-white text-[2rem] tracking-[2rem]">TODO</h2>
       <Todo />
       <div>
-        <ToastContainer autoClose={500} position="bottom-left" />
+        <ToastContainer autoClose={500} position="top-center" />
       </div>
     </div>
   );
